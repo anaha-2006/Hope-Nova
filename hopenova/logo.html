@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hope Nova</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0b0f1c;
+  transition: background 1.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body.white {
+  background: #ffffff;
+}
+
+/* ⭐ STAR */
+.star {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle, #fff6d6, #f0c36d 60%, #c9972b);
+  border-radius: 50%;
+  box-shadow:
+    0 0 25px rgba(240,195,109,1),
+    0 0 50px rgba(201,151,43,0.9),
+    0 0 90px rgba(201,151,43,0.7);
+  z-index: 10;
+}
+
+/* ✨ SPARKS */
+.spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #fff2c2, #f0c36d);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkFade 1.3s ease-out forwards;
+}
+
+@keyframes sparkFade {
+  to {
+    opacity: 0;
+    transform: translate(
+      calc(-25px + 50px * var(--x)),
+      calc(-25px + 50px * var(--y))
+    ) scale(0.3);
+  }
+}
+
+/* FLASH */
+.flash {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+}
+
+/* LOGO */
+.logo {
+  position: relative;
+  text-align: center;
+  opacity: 0;
+  z-index: 2;
+}
+
+/* GOLD TEXT */
+.logo h1 {
+  font-size: 3.5rem;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  background: linear-gradient(
+    90deg,
+    #7a5a12,
+    #c9972b,
+    #f0c36d,
+    #c9972b,
+    #7a5a12
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 1px 0 #6b4f0f,
+    0 2px 4px rgba(0,0,0,0.35),
+    0 0 18px rgba(201,151,43,0.7);
+}
+
+.logo p {
+  margin-top: 20px;
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  color: #5a4a20;
+  opacity: 0;
+}
+
+.logo.show {
+  animation: fadeUp 1.8s ease forwards;
+}
+
+.logo.show p {
+  animation: fadeTagline 1.6s ease forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeTagline {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="star" id="star"></div>
+<div class="flash" id="flash"></div>
+
+<div class="logo" id="logo">
+  <h1 id="title">Hope Nova</h1>
+  <p>Where Help Becomes Hope</p>
+</div>
+
+<script>
+const star = document.getElementById("star");
+const flash = document.getElementById("flash");
+const logo = document.getElementById("logo");
+const title = document.getElementById("title");
+const body = document.body;
+
+let x = -80;
+let y = -80;
+
+const starSize = 16;
+const centerX = window.innerWidth / 2;
+const centerY = window.innerHeight / 2;
+
+const targetX = centerX - starSize / 2;
+const targetY = centerY - starSize / 2;
+
+const speed = 16;
+let arrived = false;
+
+/* ENTRY */
+function animateStar() {
+  if (arrived) return;
+
+  const dx = targetX - x;
+  const dy = targetY - y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance <= speed) {
+    x = targetX;
+    y = targetY;
+    star.style.left = x + "px";
+    star.style.top = y + "px";
+    arrived = true;
+    impact();
+    return;
+  }
+
+  x += (dx / distance) * speed;
+  y += (dy / distance) * speed;
+
+  star.style.left = x + "px";
+  star.style.top = y + "px";
+
+  for (let i = 0; i < 4; i++) createSpark(x, y);
+  requestAnimationFrame(animateStar);
+}
+
+/* SPARKS */
+function createSpark(x, y) {
+  const spark = document.createElement("div");
+  spark.className = "spark";
+  spark.style.left = x + "px";
+  spark.style.top = y + "px";
+  spark.style.setProperty("--x", Math.random());
+  spark.style.setProperty("--y", Math.random());
+  document.body.appendChild(spark);
+  setTimeout(() => spark.remove(), 1300);
+}
+
+/* IMPACT */
+function impact() {
+  flash.style.left = centerX - 30 + "px";
+  flash.style.top = centerY - 30 + "px";
+  flash.style.opacity = "1";
+  flash.style.transform = "scale(20)";
+
+  setTimeout(() => body.classList.add("white"), 350);
+  setTimeout(() => {
+    logo.classList.add("show");
+    logo.style.opacity = "1";
+    startOrbit();
+  }, 1000);
+}
+
+/* 🌍 ORBIT AROUND FULL TEXT AREA */
+let angle = 0;
+
+function startOrbit() {
+  const rect = title.getBoundingClientRect();
+
+  const radiusX = rect.width / 2 + 40;
+  const radiusY = rect.height / 2 + 50;
+
+  function orbit() {
+    angle += 0.025;
+
+    const orbitX = centerX + Math.cos(angle) * radiusX;
+    const orbitY = centerY + Math.sin(angle) * radiusY;
+
+    star.style.left = orbitX + "px";
+    star.style.top = orbitY + "px";
+
+    createSpark(orbitX, orbitY);
+    requestAnimationFrame(orbit);
+  }
+  orbit();
+}
+
+animateStar();
+</script>
+
+</body>
+</html>
